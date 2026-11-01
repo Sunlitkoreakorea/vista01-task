@@ -1,6 +1,7 @@
-export const STORAGE_KEY = "vista01.sessions.v3";
-export const ACTIVE_SESSION_KEY = "vista01.active-session.v3";
+export const STORAGE_KEY = "vista01.sessions.v4";
+export const ACTIVE_SESSION_KEY = "vista01.active-session.v4";
 export const CONDITIONS = Object.freeze(["x", "y"]);
+export const RESPONSE_CODES = Object.freeze(["A", "B", "S", "U"]);
 
 export function normalizeCode(value) {
   return String(value ?? "").trim().toUpperCase();
@@ -55,6 +56,11 @@ export function assignTrials(participantCode, stimuli) {
   return shuffled(assigned, createRng(seed ^ 0x9e3779b9));
 }
 
+export function choiceOrderForParticipant(participantCode) {
+  const seed = hash32(normalizeCode(participantCode));
+  return (seed >>> 1) % 2 === 0 ? ["A", "B", "S", "U"] : ["B", "A", "S", "U"];
+}
+
 export function makeSession(participantCode, stimuli, study, now = new Date()) {
   const code = normalizeCode(participantCode);
   const randomPart = globalThis.crypto?.randomUUID?.() ?? `${now.getTime()}-${hash32(code)}`;
@@ -66,22 +72,38 @@ export function makeSession(participantCode, stimuli, study, now = new Date()) {
     startedAt: now.toISOString(),
     completedAt: null,
     consentConfirmed: true,
+    consentConfirmedAt: now.toISOString(),
     instructionSeen: false,
     practiceComplete: false,
+    practiceAttempts: 0,
+    breakTaken: false,
+    breakStartedAt: null,
+    breakEndedAt: null,
+    choiceOrder: choiceOrderForParticipant(code),
     currentIndex: 0,
     assignedTrials: assignTrials(code, stimuli),
+    presentationCounts: {},
     responses: [],
     pending: null,
   };
 }
 
 export function classifyResponse(actualOrder, response) {
+  const assertedOrder = response === "A" || response === "B";
+  const simultaneous = response === "S";
   const unable = response === "U";
   return {
+    assertedOrder,
+    simultaneous,
     unable,
-    correctSpecific: !unable && response === actualOrder,
-    falseAssertion: !unable && response !== actualOrder,
+    correctSpecific: assertedOrder && response === actualOrder,
+    falseAssertion: assertedOrder && response !== actualOrder,
   };
+}
+
+function breakDurationMs(session) {
+  if (!session.breakStartedAt || !session.breakEndedAt) return "";
+  return Math.max(0, new Date(session.breakEndedAt) - new Date(session.breakStartedAt));
 }
 
 export function sessionRows(session) {
@@ -92,17 +114,30 @@ export function sessionRows(session) {
     participant_code: session.participantCode,
     started_utc: session.startedAt,
     completed_utc: session.completedAt ?? "",
+    consent_confirmed_utc: session.consentConfirmedAt ?? "",
+    practice_attempts: session.practiceAttempts ?? "",
+    choice_order: (session.choiceOrder ?? []).join(">"),
+    break_duration_ms: breakDurationMs(session),
     trial_position: response.trialPosition,
     stimulus_id: response.stimulusId,
     source_index: response.sourceIndex,
     condition: response.condition,
     actual_order: response.actualOrder,
     response: response.response,
+    asserted_order: Number(response.assertedOrder),
     false_assertion: Number(response.falseAssertion),
     correct_specific: Number(response.correctSpecific),
+    simultaneous: Number(response.simultaneous),
     unable: Number(response.unable),
     confidence: response.confidence,
     response_time_ms: response.responseTimeMs,
+    confidence_response_time_ms: response.confidenceResponseTimeMs,
+    resumed_during_confidence: Number(Boolean(response.resumedDuringConfidence)),
+    presentation_count: response.presentationCount ?? 1,
+    repeat_presentation: Number((response.presentationCount ?? 1) > 1),
+    visibility_interrupted: Number(Boolean(response.visibilityInterrupted)),
+    playback_stalls: response.playbackStalls ?? 0,
+    video_duration_ms: response.videoDurationMs ?? "",
     video_path: response.video,
   }));
 }
@@ -110,11 +145,20 @@ export function sessionRows(session) {
 export function computeSessionMetrics(session) {
   const rows = sessionRows(session);
   const falseAssertions = rows.reduce((sum, row) => sum + row.false_assertion, 0);
+  const simultaneous = rows.reduce((sum, row) => sum + row.simultaneous, 0);
   const unable = rows.reduce((sum, row) => sum + row.unable, 0);
+  const qualityFlags = rows.reduce((sum, row) => sum + Number(
+    row.repeat_presentation === 1
+    || row.visibility_interrupted === 1
+    || row.playback_stalls > 0
+    || row.resumed_during_confidence === 1
+  ), 0);
   return {
     trials: rows.length,
     falseAssertions,
+    simultaneous,
     unable,
+    qualityFlags,
     falseAssertionRate: rows.length ? falseAssertions / rows.length : 0,
   };
 }
@@ -159,4 +203,3 @@ export async function checksum(value) {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
-

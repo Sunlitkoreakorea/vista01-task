@@ -1,46 +1,36 @@
 export const STUDY = Object.freeze({
-  id: "vista01-demo",
-  version: "0.3.0-demo",
+  id: "vista01-main-rc",
+  version: "1.0.0-rc1",
   title: "VISTA-01 시각 순서 과제",
-  responseLabels: Object.freeze({ A: "빨간 물체가 먼저", B: "파란 물체가 먼저", U: "판단할 수 없음" }),
+  breakAfter: 12,
+  responseLabels: Object.freeze({
+    A: "빨간 물체가 먼저",
+    B: "파란 물체가 먼저",
+    S: "거의 동시에 통과",
+    U: "순서를 구분할 수 없음",
+  }),
 });
 
 export const PRACTICE = Object.freeze({
   id: "practice_01",
   actualOrder: "B",
-  video: "assets/videos/practice.mp4?v=3",
+  video: "assets/videos/practice.mp4?v=4",
 });
 
-export const STIMULI = Object.freeze([
-  {
-    id: "s01",
-    actualOrder: "B",
-    videos: { x: "assets/videos/s01_x.mp4?v=3", y: "assets/videos/s01_y.mp4?v=3" },
-  },
-  {
-    id: "s02",
-    actualOrder: "A",
-    videos: { x: "assets/videos/s02_x.mp4?v=3", y: "assets/videos/s02_y.mp4?v=3" },
-  },
-  {
-    id: "s03",
-    actualOrder: "A",
-    videos: { x: "assets/videos/s03_x.mp4?v=3", y: "assets/videos/s03_y.mp4?v=3" },
-  },
-  {
-    id: "s04",
-    actualOrder: "B",
-    videos: { x: "assets/videos/s04_x.mp4?v=3", y: "assets/videos/s04_y.mp4?v=3" },
-  },
-  {
-    id: "s05",
-    actualOrder: "B",
-    videos: { x: "assets/videos/s05_x.mp4?v=3", y: "assets/videos/s05_y.mp4?v=3" },
-  },
-  {
-    id: "s06",
-    actualOrder: "A",
-    videos: { x: "assets/videos/s06_x.mp4?v=3", y: "assets/videos/s06_y.mp4?v=3" },
-  },
-]);
+const ACTUAL_ORDERS = Array.from({ length: 24 }, (_, index) => {
+  const pair = Math.floor(index / 2);
+  const first = Math.floor(pair / 3) % 2 === 0 ? "A" : "B";
+  return index % 2 === 0 ? first : first === "A" ? "B" : "A";
+});
 
+export const STIMULI = Object.freeze(ACTUAL_ORDERS.map((actualOrder, index) => {
+  const number = String(index + 1).padStart(2, "0");
+  return Object.freeze({
+    id: `s${number}`,
+    actualOrder,
+    videos: Object.freeze({
+      x: `assets/videos/s${number}_x.mp4?v=4`,
+      y: `assets/videos/s${number}_y.mp4?v=4`,
+    }),
+  });
+}));
