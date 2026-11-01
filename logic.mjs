@@ -137,6 +137,7 @@ export function sessionRows(session) {
     repeat_presentation: Number((response.presentationCount ?? 1) > 1),
     visibility_interrupted: Number(Boolean(response.visibilityInterrupted)),
     playback_stalls: response.playbackStalls ?? 0,
+    playback_stall_ms: response.playbackStallMs ?? 0,
     video_duration_ms: response.videoDurationMs ?? "",
     video_path: response.video,
   }));

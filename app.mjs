@@ -1,4 +1,4 @@
-import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs?v=4";
+import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs?v=5";
 import {
   ACTIVE_SESSION_KEY,
   classifyResponse,
@@ -11,7 +11,7 @@ import {
   rowsToCsv,
   saveSession,
   sessionRows,
-} from "./logic.mjs?v=4";
+} from "./logic.mjs?v=5";
 
 const elements = Object.fromEntries([
   "welcome-screen", "instruction-screen", "trial-screen", "practice-feedback-screen", "practice-complete-screen", "break-screen", "complete-screen",
@@ -35,6 +35,8 @@ let countdownTimer = null;
 let playbackActive = false;
 let visibilityInterrupted = false;
 let playbackStalls = 0;
+let playbackStallMs = 0;
+let stallStartedAt = null;
 let preloadVideo = null;
 
 function showScreen(id) {
@@ -172,6 +174,8 @@ function prepareTrial() {
   playbackActive = false;
   visibilityInterrupted = false;
   playbackStalls = 0;
+  playbackStallMs = 0;
+  stallStartedAt = null;
   elements["trial-title"].textContent = "기준선 통과 순서를 관찰해 주세요.";
   elements["choice-panel"].hidden = true;
   elements["confidence-panel"].hidden = true;
@@ -218,10 +222,19 @@ function preloadNextTrial() {
 elements["stimulus-video"].addEventListener("loadeddata", () => setVideoReady(true));
 elements["stimulus-video"].addEventListener("canplay", () => setVideoReady(true));
 elements["stimulus-video"].addEventListener("waiting", () => {
-  if (playbackActive) playbackStalls += 1;
+  if (playbackActive && stallStartedAt === null) stallStartedAt = performance.now();
 });
 elements["stimulus-video"].addEventListener("stalled", () => {
-  if (playbackActive) playbackStalls += 1;
+  if (playbackActive && stallStartedAt === null) stallStartedAt = performance.now();
+});
+elements["stimulus-video"].addEventListener("playing", () => {
+  if (stallStartedAt === null) return;
+  const duration = Math.round(performance.now() - stallStartedAt);
+  if (duration >= 150) {
+    playbackStalls += 1;
+    playbackStallMs += duration;
+  }
+  stallStartedAt = null;
 });
 
 elements["play-button"].addEventListener("click", () => {
@@ -260,6 +273,14 @@ elements["play-button"].addEventListener("click", () => {
 });
 
 elements["stimulus-video"].addEventListener("ended", () => {
+  if (stallStartedAt !== null) {
+    const duration = Math.round(performance.now() - stallStartedAt);
+    if (duration >= 150) {
+      playbackStalls += 1;
+      playbackStallMs += duration;
+    }
+    stallStartedAt = null;
+  }
   playbackActive = false;
   videoEndedAt = performance.now();
   elements["played-badge"].hidden = false;
@@ -270,6 +291,7 @@ elements["stimulus-video"].addEventListener("ended", () => {
 
 elements["stimulus-video"].addEventListener("error", () => {
   playbackActive = false;
+  stallStartedAt = null;
   setError(elements["trial-error"], "자극 영상을 불러오지 못했습니다. 연구자에게 알려 주세요.");
 });
 
@@ -302,6 +324,7 @@ function chooseResponse(response) {
     confidenceResponseTimeMs: null,
     visibilityInterrupted,
     playbackStalls,
+    playbackStallMs,
     videoDurationMs: Number.isFinite(elements["stimulus-video"].duration) ? Math.round(elements["stimulus-video"].duration * 1000) : null,
     resumedDuringConfidence: false,
     presentationCount: practiceMode ? 1 : (session.presentationCounts?.[currentTrial.id] ?? 1),
