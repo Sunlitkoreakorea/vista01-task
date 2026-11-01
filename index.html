@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>VISTA-01 시각 순서 과제</title>
+  <meta name="description" content="짧은 장면의 상대적 순서를 판단하는 익명 시각 과제">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="VISTA-01 처음으로">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>VISTA-01</span>
+    </a>
+    <div class="status-pill"><span class="status-dot"></span>로컬 저장</div>
+  </header>
+
+  <main class="shell">
+    <section id="welcome-screen" class="screen card welcome-card">
+      <div class="eyebrow">VISUAL SEQUENCE TASK</div>
+      <h1>짧은 장면을 보고<br><span>순서를 판단해 주세요.</span></h1>
+      <p class="lead">짧은 영상을 한 번 본 뒤 두 대상 중 무엇이 먼저 기준선을 통과했는지 판단하는 과제입니다. 추측하기보다 보이는 그대로 응답해 주세요.</p>
+
+      <div class="notice-grid" aria-label="실험 안내">
+        <div class="notice"><b>약 8분</b><span>예상 소요시간</span></div>
+        <div class="notice"><b>1회 재생</b><span>각 영상 재생 횟수</span></div>
+        <div class="notice"><b>익명 기록</b><span>이름과 연락처 미수집</span></div>
+      </div>
+
+      <form id="start-form" class="start-form" novalidate>
+        <label for="participant-code">참가자 코드</label>
+        <input id="participant-code" name="participantCode" autocomplete="off" inputmode="latin" maxlength="20" placeholder="예: P014" aria-describedby="code-help">
+        <small id="code-help">연구자가 부여한 영문/숫자 코드 4자 이상을 입력해 주세요.</small>
+
+        <label class="consent-row">
+          <input id="consent-check" type="checkbox">
+          <span>연구 설명을 읽었고 자발적으로 참여하며, 언제든 중단할 수 있음을 확인했습니다.</span>
+        </label>
+
+        <p id="start-error" class="error" role="alert" hidden></p>
+        <button class="primary-button" type="submit">실험 안내로 이동 <span aria-hidden="true">→</span></button>
+      </form>
+
+      <div id="resume-panel" class="resume-panel" hidden>
+        <p><b>진행 중인 실험이 있습니다.</b><br><span id="resume-detail"></span></p>
+        <div class="button-row">
+          <button id="resume-button" class="primary-button" type="button">이어서 진행</button>
+          <button id="discard-button" class="text-button" type="button">기록 폐기</button>
+        </div>
+      </div>
+
+      <p class="ethics-note">이 시범 프로그램은 IRB 승인 전 사람 대상 자료수집에 사용해서는 안 됩니다.</p>
+    </section>
+
+    <section id="instruction-screen" class="screen card" hidden>
+      <div class="step-label">실험 방법</div>
+      <h2>한 번 보고, 순서를 판단합니다.</h2>
+      <ol class="instruction-list">
+        <li><span>01</span><div><b>영상 시작을 누릅니다.</b><p>카운트다운 뒤 영상이 한 번만 재생됩니다.</p></div></li>
+        <li><span>02</span><div><b>무엇이 먼저였는지 선택합니다.</b><p>빨간 물체, 파란 물체 또는 판단 불가 중 하나를 고릅니다.</p></div></li>
+        <li><span>03</span><div><b>확신도를 표시합니다.</b><p>얼마나 확신하는지 0점에서 100점으로 응답합니다.</p></div></li>
+      </ol>
+      <div class="callout"><b>중요합니다.</b> 순서를 분명히 보지 못했다면 추측하지 말고 <em>판단 불가</em>를 선택해 주세요.</div>
+      <button id="practice-button" class="primary-button" type="button">연습 시작</button>
+    </section>
+
+    <section id="trial-screen" class="screen trial-layout" hidden>
+      <div class="trial-header">
+        <div>
+          <div id="trial-kicker" class="step-label">본 실험</div>
+          <h2 id="trial-title">사건의 순서를 관찰해 주세요.</h2>
+        </div>
+        <div class="progress-wrap">
+          <span id="progress-text">1 / 6</span>
+          <div class="progress-track"><i id="progress-bar"></i></div>
+        </div>
+      </div>
+
+      <div class="video-card">
+        <video id="stimulus-video" playsinline preload="auto" disablepictureinpicture controlslist="nodownload noplaybackrate noremoteplayback" aria-label="사건순서 판단 영상"></video>
+        <div id="video-gate" class="video-gate">
+          <button id="play-button" class="play-button" type="button"><span aria-hidden="true">▶</span> 영상 시작</button>
+          <div id="countdown" class="countdown" aria-live="assertive" hidden>3</div>
+        </div>
+        <div id="played-badge" class="played-badge" hidden>재생 완료</div>
+      </div>
+
+      <div id="choice-panel" class="response-card" hidden>
+        <p class="question">어느 사건이 먼저 일어났습니까?</p>
+        <div class="choice-grid" role="group" aria-label="사건순서 선택">
+          <button class="choice choice-red" type="button" data-response="A"><span class="object-dot red"></span>빨간 물체가 먼저</button>
+          <button class="choice choice-blue" type="button" data-response="B"><span class="object-dot blue"></span>파란 물체가 먼저</button>
+          <button class="choice choice-unknown" type="button" data-response="U"><span aria-hidden="true">?</span>판단할 수 없음</button>
+        </div>
+        <small class="shortcut-help">키보드 단축키: A / B / U</small>
+      </div>
+
+      <div id="confidence-panel" class="response-card" hidden>
+        <div class="confidence-heading"><p class="question">이 판단을 얼마나 확신합니까?</p><output id="confidence-output" for="confidence-range">50</output></div>
+        <input id="confidence-range" class="range" type="range" min="0" max="100" value="50" step="1">
+        <div class="range-labels"><span>전혀 확신하지 않음</span><span>매우 확신함</span></div>
+        <button id="next-button" class="primary-button" type="button">다음으로</button>
+      </div>
+
+      <p id="trial-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="practice-complete-screen" class="screen card compact-card" hidden>
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <div class="step-label">연습 완료</div>
+      <h2>이제 본 실험을 시작합니다.</h2>
+      <p>본 실험에서는 정답이나 피드백을 제공하지 않습니다. 각 영상은 한 번만 재생됩니다.</p>
+      <button id="experiment-button" class="primary-button" type="button">본 실험 시작</button>
+    </section>
+
+    <section id="complete-screen" class="screen card compact-card" hidden>
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <div class="step-label">실험 완료</div>
+      <h2>응답이 이 기기에 저장되었습니다.</h2>
+      <p>연구자의 안내에 따라 아래 파일을 저장해 주세요. 파일에는 이름이나 연락처가 포함되지 않습니다.</p>
+      <div class="receipt">
+        <span>세션 확인 코드</span>
+        <strong id="receipt-code">계산 중</strong>
+      </div>
+      <button id="download-button" class="primary-button" type="button">응답 CSV 저장</button>
+      <details class="debrief">
+        <summary>실험 종료 후 안내 보기</summary>
+        <p>구체적인 연구 목적과 비교 조건은 자료수집 종료 후 연구자가 IRB에서 승인된 설명문으로 안내합니다. 실험 내용이나 자료 철회에 관한 질문은 연구자에게 문의해 주세요.</p>
+      </details>
+      <button id="new-session-button" class="text-button" type="button">다른 참가자 시작</button>
+    </section>
+  </main>
+
+  <footer>VISTA-01 / Visual sequence task</footer>
+  <script type="module" src="app.mjs"></script>
+</body>
+</html>
+
