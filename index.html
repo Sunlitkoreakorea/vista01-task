@@ -26,7 +26,7 @@
       <p class="lead">짧은 영상을 한 번 본 뒤 두 대상 중 무엇이 먼저 기준선을 통과했는지 판단하는 과제입니다. 추측하기보다 보이는 그대로 응답해 주세요.</p>
 
       <div class="notice-grid" aria-label="실험 안내">
-        <div class="notice"><b>약 8분</b><span>예상 소요시간</span></div>
+        <div class="notice"><b>약 5분</b><span>예상 소요시간</span></div>
         <div class="notice"><b>1회 재생</b><span>각 영상 재생 횟수</span></div>
         <div class="notice"><b>익명 기록</b><span>이름과 연락처 미수집</span></div>
       </div>
@@ -61,7 +61,7 @@
       <h2>한 번 보고, 순서를 판단합니다.</h2>
       <ol class="instruction-list">
         <li><span>01</span><div><b>영상 시작을 누릅니다.</b><p>카운트다운 뒤 영상이 한 번만 재생됩니다.</p></div></li>
-        <li><span>02</span><div><b>무엇이 먼저였는지 선택합니다.</b><p>빨간 물체, 파란 물체 또는 판단 불가 중 하나를 고릅니다.</p></div></li>
+        <li><span>02</span><div><b>무엇이 먼저 기준선을 통과했는지 선택합니다.</b><p>빨간 물체, 파란 물체 또는 판단 불가 중 하나를 고릅니다.</p></div></li>
         <li><span>03</span><div><b>확신도를 표시합니다.</b><p>얼마나 확신하는지 0점에서 100점으로 응답합니다.</p></div></li>
       </ol>
       <div class="callout"><b>중요합니다.</b> 순서를 분명히 보지 못했다면 추측하지 말고 <em>판단 불가</em>를 선택해 주세요.</div>
@@ -90,7 +90,7 @@
       </div>
 
       <div id="choice-panel" class="response-card" hidden>
-        <p class="question">어느 사건이 먼저 일어났습니까?</p>
+        <p class="question">어느 물체가 흰색 기준선을 먼저 통과했습니까?</p>
         <div class="choice-grid" role="group" aria-label="사건순서 선택">
           <button class="choice choice-red" type="button" data-response="A"><span class="object-dot red"></span>빨간 물체가 먼저</button>
           <button class="choice choice-blue" type="button" data-response="B"><span class="object-dot blue"></span>파란 물체가 먼저</button>
@@ -100,7 +100,7 @@
       </div>
 
       <div id="confidence-panel" class="response-card" hidden>
-        <div class="confidence-heading"><p class="question">이 판단을 얼마나 확신합니까?</p><output id="confidence-output" for="confidence-range">50</output></div>
+        <div class="confidence-heading"><p id="confidence-question" class="question">선택한 순서를 얼마나 확신합니까?</p><output id="confidence-output" for="confidence-range">50</output></div>
         <input id="confidence-range" class="range" type="range" min="0" max="100" value="50" step="1">
         <div class="range-labels"><span>전혀 확신하지 않음</span><span>매우 확신함</span></div>
         <button id="next-button" class="primary-button" type="button">다음으로</button>
@@ -136,7 +136,7 @@
   </main>
 
   <footer>VISTA-01 / Visual sequence task</footer>
-  <script type="module" src="app.mjs?v=2"></script>
+  <script type="module" src="app.mjs?v=3"></script>
 </body>
 </html>
 

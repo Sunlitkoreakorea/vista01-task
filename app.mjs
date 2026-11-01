@@ -1,4 +1,4 @@
-import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs?v=2";
+import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs?v=3";
 import {
   ACTIVE_SESSION_KEY,
   classifyResponse,
@@ -11,14 +11,14 @@ import {
   rowsToCsv,
   saveSession,
   sessionRows,
-} from "./logic.mjs?v=2";
+} from "./logic.mjs?v=3";
 
 const elements = Object.fromEntries([
   "welcome-screen", "instruction-screen", "trial-screen", "practice-complete-screen", "complete-screen",
   "start-form", "participant-code", "consent-check", "start-error", "resume-panel", "resume-detail",
   "resume-button", "discard-button", "practice-button", "experiment-button", "trial-kicker", "trial-title",
   "progress-text", "progress-bar", "stimulus-video", "video-gate", "play-button", "countdown", "played-badge",
-  "choice-panel", "confidence-panel", "confidence-range", "confidence-output", "next-button", "trial-error",
+  "choice-panel", "confidence-panel", "confidence-question", "confidence-range", "confidence-output", "next-button", "trial-error",
   "receipt-code", "download-button", "new-session-button",
 ].map((id) => [id, document.getElementById(id)]));
 
@@ -130,7 +130,7 @@ function startMainTrial() {
 function prepareTrial() {
   choiceLocked = false;
   videoEndedAt = null;
-  elements["trial-title"].textContent = "사건의 순서를 관찰해 주세요.";
+  elements["trial-title"].textContent = "기준선 통과 순서를 관찰해 주세요.";
   elements["choice-panel"].hidden = true;
   elements["confidence-panel"].hidden = true;
   elements["played-badge"].hidden = true;
@@ -221,6 +221,9 @@ function chooseResponse(response) {
   });
   elements["confidence-range"].value = "50";
   elements["confidence-output"].value = "50";
+  elements["confidence-question"].textContent = response === "U"
+    ? "판단할 수 없다는 응답을 얼마나 확신합니까?"
+    : "선택한 순서를 얼마나 확신합니까?";
   elements["confidence-panel"].hidden = false;
   elements["confidence-range"].focus();
   if (practiceMode) elements["next-button"].dataset.practicePending = JSON.stringify(pending);
@@ -278,6 +281,9 @@ function restorePendingChoice() {
   elements["confidence-panel"].hidden = false;
   elements["confidence-range"].value = String(session.pending.confidence ?? 50);
   elements["confidence-output"].value = String(session.pending.confidence ?? 50);
+  elements["confidence-question"].textContent = session.pending.response === "U"
+    ? "판단할 수 없다는 응답을 얼마나 확신합니까?"
+    : "선택한 순서를 얼마나 확신합니까?";
 }
 
 async function finishSession() {
