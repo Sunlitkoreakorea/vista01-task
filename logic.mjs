@@ -1,5 +1,5 @@
-export const STORAGE_KEY = "vista01.sessions.v1";
-export const ACTIVE_SESSION_KEY = "vista01.active-session.v1";
+export const STORAGE_KEY = "vista01.sessions.v2";
+export const ACTIVE_SESSION_KEY = "vista01.active-session.v2";
 export const CONDITIONS = Object.freeze(["x", "y"]);
 
 export function normalizeCode(value) {

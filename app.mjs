@@ -1,4 +1,4 @@
-import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs";
+import { STUDY, PRACTICE, STIMULI } from "./stimuli.mjs?v=2";
 import {
   ACTIVE_SESSION_KEY,
   classifyResponse,
@@ -11,7 +11,7 @@ import {
   rowsToCsv,
   saveSession,
   sessionRows,
-} from "./logic.mjs";
+} from "./logic.mjs?v=2";
 
 const elements = Object.fromEntries([
   "welcome-screen", "instruction-screen", "trial-screen", "practice-complete-screen", "complete-screen",
